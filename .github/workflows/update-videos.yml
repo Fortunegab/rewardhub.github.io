@@ -1,0 +1,113 @@
+name: RewardHub Daily Video Updates
+
+on:
+  schedule:
+    - cron: "30 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update-videos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get updater code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Discover and save YouTube videos
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          import sys
+          import requests
+          from datetime import datetime, timedelta, timezone
+
+          api_key = os.environ["YOUTUBE_API_KEY"]
+          supabase_url = os.environ["SUPABASE_URL"].rstrip("/")
+          service_key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+
+          if not all([api_key, supabase_url, service_key]):
+              sys.exit("Required secrets are missing.")
+
+          published_after = (
+              datetime.now(timezone.utc) - timedelta(days=7)
+          ).isoformat().replace("+00:00", "Z")
+
+          response = requests.get(
+              "https://www.googleapis.com/youtube/v3/search",
+              params={
+                  "part": "snippet",
+                  "type": "video",
+                  "order": "date",
+                  "regionCode": "NG",
+                  "relevanceLanguage": "en",
+                  "q": "Nigerian entertainment comedy music",
+                  "publishedAfter": published_after,
+                  "maxResults": 50,
+                  "key": api_key,
+              },
+              timeout=30,
+          )
+          response.raise_for_status()
+          items = response.json().get("items", [])
+
+          videos = []
+
+          for item in items:
+              video_id = item.get("id", {}).get("videoId")
+              snippet = item.get("snippet", {})
+
+              if not video_id or not snippet.get("title"):
+                  continue
+
+              thumbnails = snippet.get("thumbnails", {})
+              thumbnail = (
+                  thumbnails.get("high")
+                  or thumbnails.get("medium")
+                  or thumbnails.get("default")
+                  or {}
+              )
+
+              videos.append({
+                  "youtube_video_id": video_id,
+                  "title": snippet["title"],
+                  "thumbnail_url": thumbnail.get("url"),
+                  "category": "Nigerian Entertainment",
+                  "published_at": snippet.get("publishedAt"),
+              })
+
+          if not videos:
+              print("No videos found during this update.")
+              sys.exit(0)
+
+          result = requests.post(
+              f"{supabase_url}/rest/v1/videos",
+              params={"on_conflict": "youtube_video_id"},
+              headers={
+                  "apikey": service_key,
+                  "Authorization": f"Bearer {service_key}",
+                  "Content-Type": "application/json",
+                  "Prefer": "resolution=merge-duplicates,return=minimal",
+              },
+              json=videos,
+              timeout=60,
+          )
+
+          result.raise_for_status()
+
+          print(f"Successfully synchronized {len(videos)} videos.")
+          PY
