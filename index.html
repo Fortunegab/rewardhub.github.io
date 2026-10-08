@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090d18">
+  <title>RewardHub — Watch & Discover</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#090d18;color:#f5f7ff;font-family:Arial,sans-serif}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    .nav{height:70px;padding:0 6%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #202638;background:#0c1120}
+    .logo{font-size:23px;font-weight:800;letter-spacing:-1px}
+    .logo span{color:#7c5cff}
+    .badge{font-size:12px;color:#b9adff;background:#201b3e;padding:8px 12px;border-radius:20px}
+    .container{max-width:1100px;margin:auto;padding:32px 20px}
+    .hero{padding:25px 0 35px}
+    .eyebrow{color:#a99aff;text-transform:uppercase;font-size:12px;font-weight:bold;letter-spacing:2px}
+    h1{font-size:clamp(32px,6vw,52px);margin:14px 0;letter-spacing:-2px}
+    .muted{color:#99a3bb;line-height:1.6}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .card{background:#111827;border:1px solid #252d40;border-radius:16px;padding:20px}
+    .stat-label{font-size:13px;color:#99a3bb}
+    .stat-value{font-size:28px;font-weight:bold;margin:12px 0 5px}
+    .section-head{display:flex;justify-content:space-between;align-items:center;margin:35px 0 18px;gap:12px}
+    h2{font-size:22px;margin:0}
+    .btn{background:#7657ff;color:white;border:0;padding:12px 17px;border-radius:10px;font-weight:bold}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn-outline{background:transparent;border:1px solid #39425b;color:#f5f7ff}
+    .videos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .video-card{overflow:hidden;background:#111827;border:1px solid #252d40;border-radius:16px}
+    .video-card img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#202638;display:block}
+    .video-body{padding:16px}
+    .video-body h3{font-size:16px;line-height:1.45;margin:0 0 12px}
+    .video-body p{font-size:13px;color:#99a3bb;line-height:1.5}
+    .video-body .btn{width:100%;margin-top:8px}
+    .form-wrap{max-width:420px;margin:50px auto;background:#111827;border:1px solid #252d40;border-radius:18px;padding:24px}
+    .form-wrap h2{margin-bottom:10px}
+    label{display:block;font-size:13px;color:#b9c1d4;margin:16px 0 7px}
+    input{width:100%;padding:13px;background:#090d18;border:1px solid #30394f;border-radius:9px;color:white;outline:none}
+    input:focus{border-color:#7657ff}
+    .form-wrap .btn{width:100%;margin-top:18px}
+    .switch{background:none;border:0;color:#b9aaff;margin-top:15px}
+    .notice{padding:13px;border-radius:10px;background:#201b3e;color:#d7ceff;font-size:13px;line-height:1.6;margin-top:18px}
+    .hidden{display:none!important}
+    .status{font-size:13px;color:#b9aaff;margin-top:15px;line-height:1.5}
+    footer{padding:30px 20px;text-align:center;color:#77819a;font-size:12px;border-top:1px solid #202638;margin-top:50px}
+    @media(max-width:650px){.grid{grid-template-columns:1fr}.videos{grid-template-columns:1fr}.container{padding:24px 16px}.nav{padding:0 16px}.badge{font-size:11px}}
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="logo">Reward<span>Hub</span></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span id="nav-user" class="badge">Discover videos</span>
+      <button id="auth-nav" class="btn" onclick="showAuth()">Sign in</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="eyebrow">Discover something new</div>
+      <h1>Your next favourite<br>video is waiting.</h1>
+      <p class="muted">Explore videos, discover creators, and find opportunities to earn rewards.</p>
+    </section>
+
+    <section id="dashboard" class="hidden">
+      <div class="grid">
+        <div class="card">
+          <div class="stat-label">Your points</div>
+          <div class="stat-value" id="points">0</div>
+          <div class="stat-label">Available points</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">Account status</div>
+          <div class="stat-value" style="font-size:21px">Active</div>
+          <div class="stat-label">Welcome to RewardHub</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">Rewards</div>
+          <div class="stat-value" style="font-size:21px">Coming soon</div>
+          <div class="stat-label">Reward terms will be published before launch</div>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <button class="btn btn-outline" onclick="signOut()">Sign out</button>
+      </div>
+    </section>
+
+    <section id="auth" class="form-wrap hidden">
+      <h2 id="form-title">Welcome back</h2>
+      <p class="muted" id="form-description">Sign in to your RewardHub account.</p>
+      <form id="auth-form">
+        <div id="username-field" class="hidden">
+          <label for="username">Username</label>
+          <input id="username" maxlength="30" autocomplete="username" placeholder="Choose a username">
+        </div>
+        <label for="email">Email address</label>
+        <input id="email" type="email" required autocomplete="email" placeholder="you@example.com">
+        <label for="password">Password</label>
+        <input id="password" type="password" required minlength="8" autocomplete="current-password" placeholder="At least 8 characters">
+        <button class="btn" id="submit-auth" type="submit">Sign in</button>
+      </form>
+      <button class="switch" id="switch-auth" onclick="toggleAuthMode()">Don't have an account? Register</button>
+      <div id="auth-status" class="status" role="status"></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Discover videos</h2>
+          <p class="muted" style="font-size:13px;margin-bottom:0">Explore videos from YouTube.</p>
+        </div>
+        <button class="btn btn-outline" onclick="loadVideos()">Refresh</button>
+      </div>
+      <div id="videos" class="videos"></div>
+      <p id="video-status" class="status"></p>
+    </section>
+
+    <section class="notice">
+      <strong>About rewards:</strong> Points shown in your account are not cash and cannot currently be withdrawn. RewardHub will only introduce funded rewards for eligible activities after the reward rules and payout system are implemented.
+    </section>
+  </main>
+
+  <footer>RewardHub · Discover responsibly · Rewards subject to published terms</footer>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const SUPABASE_URL = 'https://vmyjxnkkgymtgwwivnld.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_eh6XH6tUaOoX2UF0R1VLoA_bahjpIE8';
+
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let registerMode = false;
+    let currentUser = null;
+
+    const $ = id => document.getElementById(id);
+
+    window.showAuth = () => {
+      $('auth').classList.remove('hidden');
+      $('auth').scrollIntoView({behavior:'smooth',block:'center'});
+    };
+
+    window.toggleAuthMode = () => {
+      registerMode = !registerMode;
+      $('form-title').textContent = registerMode ? 'Create your account' : 'Welcome back';
+      $('form-description').textContent = registerMode
+        ? 'Join RewardHub and discover videos.'
+        : 'Sign in to your RewardHub account.';
+      $('username-field').classList.toggle('hidden', !registerMode);
+      $('username').required = registerMode;
+      $('password').autocomplete = registerMode ? 'new-password' : 'current-password';
+      $('submit-auth').textContent = registerMode ? 'Create account' : 'Sign in';
+      $('switch-auth').textContent = registerMode
+        ? 'Already have an account? Sign in'
+        : "Don't have an account? Register";
+      $('auth-status').textContent = '';
+    };
+
+    async function refreshSession() {
+      const {data, error} = await db.auth.getSession();
+      if (error) console.error(error);
+      currentUser = data.session?.user ?? null;
+      await renderAccount();
+    }
+
+    async function renderAccount() {
+      $('dashboard').classList.toggle('hidden', !currentUser);
+      $('auth-nav').textContent = currentUser ? 'Account' : 'Sign in';
+      $('nav-user').textContent = currentUser
+        ? (currentUser.email || 'Member')
+        : 'Discover videos';
+
+      if (!currentUser) {
+        $('auth').classList.add('hidden');
+        return;
+      }
+
+      const {data, error} = await db
+        .from('profiles')
+        .select('username, points')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error(error);
+        $('points').textContent = '—';
+        return;
+      }
+
+      if (data) {
+        $('points').textContent = data.points;
+        $('nav-user').textContent = data.username || currentUser.email;
+      } else {
+        $('points').textContent = '0';
+      }
+    }
+
+    $('auth-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const status = $('auth-status');
+      const button = $('submit-auth');
+      button.disabled = true;
+      status.textContent = 'Please wait...';
+
+      try {
+        const email = $('email').value.trim();
+        const password = $('password').value;
+        let result;
+
+        if (registerMode) {
+          const username = $('username').value.trim();
+          if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+            throw new Error('Username must be 3–30 letters, numbers, or underscores.');
+          }
+
+          result = await db.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {username}
+            }
+          });
+
+          if (result.error) throw result.error;
+
+          if (result.data.session) {
+            status.textContent = 'Account created!';
+          } else {
+            status.textContent = 'Check your email to confirm your account, then sign in.';
+            return;
+          }
+        } else {
+          result = await db.auth.signInWithPassword({email,password});
+          if (result.error) throw result.error;
+          status.textContent = 'Signed in successfully!';
+        }
+
+        $('auth').classList.add('hidden');
+        await refreshSession();
+      } catch (error) {
+        status.textContent = error.message || 'Something went wrong. Please try again.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    window.signOut = async () => {
+      const {error} = await db.auth.signOut();
+      if (error) {
+        alert(error.message);
+        return;
+      }
+      currentUser = null;
+      await renderAccount();
+    };
+
+    window.loadVideos = async () => {
+      const area = $('videos');
+      const status = $('video-status');
+      area.innerHTML = '';
+      status.textContent = 'Loading videos...';
+
+      const {data, error} = await db
+        .from('videos')
+        .select('youtube_video_id,title,thumbnail_url,category,published_at')
+        .order('published_at', {ascending:false})
+        .limit(20);
+
+      if (error) {
+        status.textContent = 'Could not load videos. Please try again later.';
+        console.error(error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        status.textContent = 'Your video library is ready for its first videos. Automatic daily updates will be connected next.';
+        return;
+      }
+
+      for (const video of data) {
+        const card = document.createElement('article');
+        card.className = 'video-card';
+
+        const img = document.createElement('img');
+        img.src = video.thumbnail_url ||
+          `https://i.ytimg.com/vi/${encodeURIComponent(video.youtube_video_id)}/hqdefault.jpg`;
+        img.alt = video.title;
+        img.loading = 'lazy';
+
+        const body = document.createElement('div');
+        body.className = 'video-body';
+
+        const title = document.createElement('h3');
+        title.textContent = video.title;
+
+        const category = document.createElement('p');
+        category.textContent = video.category || 'YouTube video';
+
+        const link = document.createElement('a');
+        link.className = 'btn';
+        link.style.display = 'block';
+        link.style.textAlign = 'center';
+        link.style.textDecoration = 'none';
+        link.href = `https://www.youtube.com/watch?v=${encodeURIComponent(video.youtube_video_id)}`;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Watch on YouTube';
+
+        body.append(title, category, link);
+        card.append(img, body);
+        area.append(card);
+      }
+
+      status.textContent = `${data.length} video(s) available.`;
+    };
+
+    db.auth.onAuthStateChange((_event, session) => {
+      currentUser = session?.user ?? null;
+      renderAccount();
+    });
+
+    await refreshSession();
+    await loadVideos();
+  </script>
+</body>
+</html><
